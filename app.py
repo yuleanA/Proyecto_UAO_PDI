@@ -3,93 +3,85 @@ import pandas as pd
 import datetime
 import os
 import time
-from PIL import Image
 
-# --- CONFIGURACIÓN ---
-st.set_page_config(page_title="UAO Campus Inteligente", layout="wide")
+# --- CONFIGURACIÓN DE PÁGINA ---
+# Cambiamos el nombre de la pestaña y pusimos layout="centered" para que no se estire feo en PC
+st.set_page_config(page_title="DeepVision UAO | Control Vehicular", layout="centered", page_icon="🚘")
 ARCHIVO_CSV = "base_datos/registros.csv"
 
-# --- CONEXIÓN CON EL MODELO DE TU COMPAÑERO ---
-# Usamos un Try/Except para que tu app funcione AUNQUE tu compañero no haya terminado su parte.
+# --- CONEXIÓN CON EL MODELO ---
 try:
     from modelo.inferencia import predecir_vehiculo
 except ImportError:
-    # Función simulada (Mock) mientras tu compañero sube su código
+    # Función simulada mejorada (ahora simula fallos por fotos borrosas)
     def predecir_vehiculo(imagen):
         import random
-        time.sleep(1.5) # Simula el tiempo de procesamiento
+        time.sleep(1.5)
+        # Simulamos un 20% de probabilidad de que la foto no se entienda
+        if random.random() < 0.20:
+            return "No Reconocido", 0
         es_carro = random.random() > 0.3
-        return "Carro" if es_carro else "Moto", f"{random.randint(85, 99)}%"
+        return "Carro" if es_carro else "Moto", random.randint(85, 99)
 
-# --- INTERFAZ ---
-st.title("🚗 UAO Campus Inteligente - Clasificación Vehicular")
+# --- INTERFAZ PRINCIPAL ---
+st.title("🚘 DeepVision UAO")
+st.subheader("Sistema de Auditoría y Clasificación Vehicular")
 
-# Creamos las 3 pantallas solicitadas
-pantalla_inicio, pantalla_resultado, pantalla_historial = st.tabs(["📷 Inicio", "🎯 Resultado", "📋 Historial"])
-
-with pantalla_inicio:
-    st.markdown("### Cámara - Portería Principal")
-    st.image("https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=800", caption="Feed en vivo (Simulación)")
-    
-    if st.button("🔍 PROCESAR VEHÍCULO", type="primary", use_container_width=True):
-        # Aquí se llama a la función de la red neuronal
-        with st.spinner("Analizando imagen con Deep Learning..."):
-            clase, confianza = predecir_vehiculo(None) # En la vida real aquí va la foto
-            
-            # Guardar el resultado temporalmente en la sesión de Streamlit
-            st.session_state['ultimo_resultado'] = {'clase': clase, 'confianza': confianza}
-            st.success("¡Análisis completado! Ve a la pestaña 'Resultado'.")
-
-with pantalla_resultado:
-    st.markdown("### Resultado de Inferencia")
-    if 'ultimo_resultado' in st.session_state:
-        res = st.session_state['ultimo_resultado']
-        st.info("Bounding Box simulado generado por la red neuronal.")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            # Mostramos imagen según la clase
-            img_url = "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=400" if res['clase'] == 'Carro' else "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=400"
-            st.image(img_url, caption=f"Objeto Detectado: {res['clase']}")
-        
-        with col2:
-            st.metric(label="Clase Detectada", value=res['clase'])
-            st.metric(label="Nivel de Confianza", value=res['confianza'])
-            
-            if st.button("✅ Guardar en Historial", type="primary"):
-                # Lógica para guardar en el CSV
-                df = pd.read_csv(ARCHIVO_CSV)
-                nuevo_id = 1 if len(df) == 0 else df['ID'].max() + 1
-                nuevo_registro = pd.DataFrame([{
-                    'ID': nuevo_id,
-                    'Fecha': datetime.date.today().strftime("%Y-%m-%d"),
-                    'Hora': datetime.datetime.now().strftime("%H:%M:%S"),
-                    'Clase': res['clase'],
-                    'Confianza': res['confianza']
-                }])
-                df = pd.concat([df, nuevo_registro], ignore_index=True)
-                df.to_csv(ARCHIVO_CSV, index=False)
-                st.success("Registro guardado con éxito. Revisa la pestaña Historial.")
-                del st.session_state['ultimo_resultado'] # Limpiar pantalla
-    else:
-        st.warning("Aún no se ha procesado ningún vehículo. Ve a la pestaña Inicio.")
+pantalla_inicio, pantalla_resultado, pantalla_historial = st.tabs(["📸 Inicio", "🎯 Resultado", "📋 Historial"])
 
 with pantalla_inicio:
-    st.markdown("### Cámara - Portería Principal")
+    st.info("Sistema en línea. Esperando vehículo en portería...")
     
-    # 1. Activamos la cámara web del dispositivo
-    imagen_capturada = st.camera_input("Toma la foto del vehículo en la portería")
+    # La cámara real (eliminamos la imagen falsa)
+    imagen_capturada = st.camera_input("Captura de Garita Principal")
     
-    # 2. Solo mostramos el botón de procesar si el guarda ya tomó una foto
     if imagen_capturada is not None:
         if st.button("🔍 PROCESAR VEHÍCULO", type="primary", use_container_width=True):
             
-            with st.spinner("Analizando imagen con Deep Learning..."):
-                # Aquí le estamos pasando la foto REAL a la red neuronal
+            with st.spinner("Ejecutando Inferencia (CNN)..."):
                 clase, confianza = predecir_vehiculo(imagen_capturada) 
                 
-                # Guardamos el resultado en memoria
-                st.session_state['ultimo_resultado'] = {'clase': clase, 'confianza': confianza}
-                st.success("¡Análisis completado! Ve a la pestaña 'Resultado'.")
+                # SISTEMA DE ERROR: Si la red no lo reconoce o la confianza es muy baja
+                if clase == "No Reconocido" or confianza < 50:
+                    st.error("⚠️ La foto es difícil de reconocer o determinar su tipo. Por favor, asegúrese de que el vehículo esté enfocado e intente tomar otra captura.")
+                else:
+                    st.session_state['ultimo_resultado'] = {'clase': clase, 'confianza': f"{confianza}%"}
+                    st.success("✅ ¡Análisis exitoso! Ve a la pestaña 'Resultado'.")
+
+with pantalla_resultado:
+    st.markdown("### Resultado de Detección")
+    if 'ultimo_resultado' in st.session_state:
+        res = st.session_state['ultimo_resultado']
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric(label="Clase Detectada", value=res['clase'])
+        with col2:
+            st.metric(label="Nivel de Confianza", value=res['confianza'])
+            
+        st.divider()
+            
+        if st.button("💾 Guardar Registro en Base de Datos", type="primary", use_container_width=True):
+            df = pd.read_csv(ARCHIVO_CSV)
+            nuevo_id = 1 if len(df) == 0 else df['ID'].max() + 1
+            nuevo_registro = pd.DataFrame([{
+                'ID': nuevo_id,
+                'Fecha': datetime.date.today().strftime("%Y-%m-%d"),
+                'Hora': datetime.datetime.now().strftime("%H:%M:%S"),
+                'Clase': res['clase'],
+                'Confianza': res['confianza']
+            }])
+            df = pd.concat([df, nuevo_registro], ignore_index=True)
+            df.to_csv(ARCHIVO_CSV, index=False)
+            st.success("Registro guardado con éxito. Revisa la pestaña Historial.")
+            del st.session_state['ultimo_resultado']
     else:
-        st.info("👆 Por favor, permite el acceso a la cámara y toma una foto para habilitar el procesamiento.")
+        st.warning("No hay resultados recientes. Toma una foto en la pestaña de Inicio.")
+
+with pantalla_historial:
+    st.markdown("### Auditoría Local (CSV)")
+    try:
+        df_historial = pd.read_csv(ARCHIVO_CSV)
+        st.dataframe(df_historial, use_container_width=True)
+    except Exception as e:
+        st.error("Error al leer la base de datos.")
