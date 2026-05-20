@@ -74,10 +74,22 @@ with pantalla_resultado:
     else:
         st.warning("Aún no se ha procesado ningún vehículo. Ve a la pestaña Inicio.")
 
-with pantalla_historial:
-    st.markdown("### Base de Datos Local")
-    try:
-        df_historial = pd.read_csv(ARCHIVO_CSV)
-        st.dataframe(df_historial, use_container_width=True)
-    except Exception as e:
-        st.error("Error al leer la base de datos.")
+with pantalla_inicio:
+    st.markdown("### Cámara - Portería Principal")
+    
+    # 1. Activamos la cámara web del dispositivo
+    imagen_capturada = st.camera_input("Toma la foto del vehículo en la portería")
+    
+    # 2. Solo mostramos el botón de procesar si el guarda ya tomó una foto
+    if imagen_capturada is not None:
+        if st.button("🔍 PROCESAR VEHÍCULO", type="primary", use_container_width=True):
+            
+            with st.spinner("Analizando imagen con Deep Learning..."):
+                # Aquí le estamos pasando la foto REAL a la red neuronal
+                clase, confianza = predecir_vehiculo(imagen_capturada) 
+                
+                # Guardamos el resultado en memoria
+                st.session_state['ultimo_resultado'] = {'clase': clase, 'confianza': confianza}
+                st.success("¡Análisis completado! Ve a la pestaña 'Resultado'.")
+    else:
+        st.info("👆 Por favor, permite el acceso a la cámara y toma una foto para habilitar el procesamiento.")
