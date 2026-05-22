@@ -35,11 +35,15 @@ with pantalla_inicio:
     # La cámara real (eliminamos la imagen falsa)
     imagen_capturada = st.camera_input("Captura de Garita Principal")
     
-    if imagen_capturada is not None:
+    imagen_subida = st.file_uploader("O carga una imagen desde tu equipo", type=["jpg", "jpeg", "png"])
+    
+    imagen_final = imagen_capturada if imagen_capturada is not None else imagen_subida
+
+    if imagen_final is not None:
         if st.button("🔍 PROCESAR VEHÍCULO", type="primary", use_container_width=True):
             
             with st.spinner("Ejecutando Inferencia (CNN)..."):
-                clase, confianza = predecir_vehiculo(imagen_capturada) 
+                clase, confianza = predecir_vehiculo(imagen_final) 
                 
                 # SISTEMA DE ERROR: Si la red no lo reconoce o la confianza es muy baja
                 if clase == "No Reconocido" or confianza < 50:
