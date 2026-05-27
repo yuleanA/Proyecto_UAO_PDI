@@ -17,7 +17,7 @@ El documento inicial planteaba tres objetivos específicos: preprocesamiento de 
 Esta decisión fue tomada conscientemente por limitaciones de tiempo y por integridad académica: Tesseract OCR implica un flujo de procesamiento distinto al trabajado en el curso, y el equipo consideró que integrarlo sin comprenderlo suficientemente comprometía la capacidad de sustentar esa parte del trabajo. La arquitectura del sistema está diseñada para que ese módulo pueda agregarse en una iteración futura sin modificar la estructura existente.
 Lo que sí se entregó funciona de extremo a extremo: captura o carga de imagen → preprocesamiento → clasificación con CNN propia entrenada con datos reales → registro en CSV.
 
-## 🚀 Cómo ejecutar el proyecto localmente
+## Cómo ejecutar el proyecto localmente
 
 1. Instalar las dependencias:
    `pip install -r requirements.txt`
@@ -27,3 +27,7 @@ Lo que sí se entregó funciona de extremo a extremo: captura o carga de imagen 
 ## Alternativa directa
 
 https://deepvision-uao.streamlit.app
+
+## Enlace a la carpeta con las pruebas
+
+https://drive.google.com/drive/folders/1ltdbakcqRh27NLbpHKz_QWvQpsnVyf5f?usp=drive_link
