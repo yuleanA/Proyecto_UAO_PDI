@@ -1,8 +1,8 @@
-# 🚗 Sistema de Clasificación Vehicular - UAO Campus Inteligente
+# Sistema de Clasificación Vehicular - UAO Campus Inteligente
 
 Este proyecto implementa una solución de Visión por Computadora mediante una Red Neuronal Convolucional (CNN) para clasificar automáticamente los vehículos (Carros vs. Motos) que ingresan a la Universidad Autónoma de Occidente, optimizando la logística de parqueaderos.
 
-## 📂 Arquitectura del Proyecto y Carpetas
+## Arquitectura del Proyecto y Carpetas
 
 El proyecto está dividido bajo el principio de separación de responsabilidades:
 
